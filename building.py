@@ -1,21 +1,44 @@
 import pygame
 
-class Building:
-    def __init__(self,win,vector, width, height,color, health):
-        self.vector = vector
-        self.width = width
-        self.height = height
-        self.win = win
-        self.color = color
 
+class Building(pygame.sprite.Sprite):
+    def __init__(self, health, buildgroup, vector):
+        super().__init__()
         self.health = health
+        self.vector = vector
+        
+        buildgroup.add(self)
+
+    def update(self):
+        pass
 
     def draw(self):
-        pygame.draw.rect(self.win, self.color, (self.vector.x, self.vector.y, self.width, self.height))
+        pass
+
+
+class UtilityBuilding(Building):
+    def __init__(self, health, group, vector):
+        super().__init__(health, group, vector)
+
+        self.image = pygame.image.load('images/Utility.png').convert_alpha()
     
-    def update(self):
-        if self.health > 0:
-            self.draw()
+    def draw(self,screen):
+        screen.blit(self.image, self.vector.get_pos())
     
-    def midpoint(self):
-        return (self.width/2, self.height/2)
+    def update(self, screen):
+        self.draw(screen)
+    
+    def help(self):
+        pass
+
+class ArtilleryBuilding(Building):
+    def __init__(self, health, group, vector):
+        super().__init__(health, group, vector)
+
+        self.image = pygame.image.load('images/Artillery.png').convert_alpha()
+    
+    def draw(self,screen):
+        screen.blit(self.image, self.vector.get_pos())
+    
+    def update(self, screen):
+        self.draw(screen)

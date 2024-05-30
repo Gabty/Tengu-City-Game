@@ -13,13 +13,6 @@ class Vector:
 
     def get_angle(self, pos):
         dx = pos[0] - self.x
-        dy =  self.y - pos[1]
+        dy =  pos[1] - self.y
         angle = atan2(-dy, dx) # in radians only
-
         return angle
-
-#               ( V ) - parameter
-vector1 = Vector(1,2) # Instance of Vector
-
-#call method from Instance earlier
-print(vector1.get_pos())
