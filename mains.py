@@ -1,15 +1,15 @@
 import pygame
 
-import bullet
+import missile
 import ship
 import building
 
 from math import *
 from vector import Vector
-import time
 import random as ran
 
 pygame.init()
+pygame.display.set_caption('Tengu City')
 
 WIDTH, HEIGHT  = 600,700
 
@@ -26,6 +26,10 @@ class Main():
         self.checkpoint = Checkpoint(self.screen, self.gameScene)
         self.leaderboard = Leaderboard(self.screen, self.gameScene)
         self.state = {'main': self.mainmenu, 'game': self.game, 'check': self.checkpoint, 'leaderboard': self.leaderboard}
+
+        self.bg_music = pygame.mixer.Sound('sounds/bgmusic.mp3')
+        self.bg_music.set_volume(0.5)
+        self.bg_music.play(-1)
     
     def play(self):
         self.run = True
@@ -66,7 +70,6 @@ class MainMenu:
         if rect.collidepoint(mouse.get_pos()) and mouse.get_pressed()[0]:
             pygame.draw.rect(self.screen, (255,0,0), (300-100,200,200,75))
             self.gamescene.setState('check')
-            time.sleep(0.005)
         
         rect2 = pygame.Rect((200,300,200,75))
         pygame.draw.rect(self.screen, (255,255,255), (300-100,300,200,75))
@@ -109,10 +112,10 @@ class Checkpoint:
         return rect.collidepoint(pos)
     
     def run(self):
-        self.screen.fill((100,100,100))
+        self.screen.fill((25,25,25))
         text = self.base_font.render(self.user_input, True, (255,255,255))
-        pygame.draw.rect(self.screen, (255,0,255), self.input_rect, 5)
-        pygame.draw.rect(self.screen, (0,0,255), self.start_rect)
+        pygame.draw.rect(self.screen, (100,100,100), self.input_rect, 5)
+        pygame.draw.rect(self.screen, (255,255,255), self.start_rect)
         self.screen.blit(text, ((WIDTH//2)-(text.get_width()/2), self.input_rect.y+5))
         
         if len(self.user_input) > 3:
@@ -184,6 +187,7 @@ class Game:
         self.missileGroup = pygame.sprite.Group()
         self.shipGroup = pygame.sprite.Group()
         self.buildingGroup = pygame.sprite.Group()
+        self.enemyMissileGroup = pygame.sprite.Group()
         # Initialized the buildings Artillery
         building.ArtilleryBuilding(100, self.buildingGroup, Vector(270,600)) # middile
         building.ArtilleryBuilding(100, self.buildingGroup, Vector(90,600)) # left
@@ -193,51 +197,87 @@ class Game:
         building.UtilityBuilding(100, self.buildingGroup, Vector(180,610))
         building.UtilityBuilding(100, self.buildingGroup, Vector(360,610))
         building.UtilityBuilding(100, self.buildingGroup, Vector(525,610))
+
+        self.scoreFont = pygame.font.Font("fonts/INVASION2000.TTF", 24)
+
+        self.explosionsfx = pygame.mixer.Sound('sounds/explode.wav')
+        self.launchsfx = pygame.mixer.Sound('sounds/launching.wav')
+    
+    def add_score(self, score):
+        self.__score += score
     
     def update(self):
-        self.missileGroup.update(self.screen)
+        self.missileGroup.update(self.screen, self.enemyMissileGroup, self)
+        self.enemyMissileGroup.update(self.screen)
         self.shipGroup.update(self.screen)
         self.buildingGroup.update(self.screen)
+
+        collision = pygame.sprite.groupcollide(self.missileGroup, self.enemyMissileGroup, False, True)
+        shipcollision = pygame.sprite.groupcollide(self.missileGroup, self.shipGroup, False, True)
+        
+
+        if collision:
+            self.add_score(10)
+        if shipcollision:
+            self.add_score(20)
         
         self.time += self.clock.get_rawtime()
         
-        if self.time % 50 == 0:
+        if self.time % 100 == 0:
             self.spawn_ship()
-
+        
+        if self.time % 10 == 0:
+            self.enemy_shoot()
 
     def draw(self):
         self.screen.fill((0,0,0))
-        pygame.draw.line(self.screen, (255,255,255), (300,0), (300,700))
+        text = self.scoreFont.render("Score: "+str(self.__score), True, (255,255,255))
+        self.screen.blit(text, (((WIDTH//2)-(text.get_width()/2), text.get_height())))
+    
     def event(self, event):
         mouse = pygame.mouse.get_pos()
-        if event.type == pygame.MOUSEBUTTONUP:
-            dis = 9999 # initialized to 9999 determines the selection
-            build = None # initialized to None for selection
-            for i in self.buildingGroup:
-                if isinstance(i, building.ArtilleryBuilding):
-                    if i.vector.get_distance(mouse) < dis:
-                        dis = i.vector.get_distance(mouse)
-                        build = i
-            
-            self.shoot(build,mouse)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if pygame.mouse.get_pressed()[0]:
+                dis = 9999 # initialized to 9999 determines the selection
+                build = None # initialized to None for selection
+                for i in self.buildingGroup:
+                    if isinstance(i, building.ArtilleryBuilding):
+                        if i.vector.get_distance(mouse) < dis:
+                            dis = i.vector.get_distance(mouse)
+                            build = i
+                
+                self.shoot(build,mouse)
 
-    
     def spawn_ship(self):
         rangeY = ran.randint(100,200)
         spawnX = [-20,720]
-        ship.Green_Ship('images/Missile_1.png', 4, Vector(ran.choice(spawnX), rangeY), self.shipGroup)
+        ship.Ship('images/Missile_1.png', 4, Vector(ran.choice(spawnX), rangeY), self.shipGroup)
     
     def shoot(self, building, target):
         angle = Vector(building.vector.x+30, building.vector.y).get_angle(target)
-        print(degrees(angle))
-        bullet.CuteMissile('images/Missile1.png',5, angle, Vector(building.vector.x+30, building.vector.y), self.missileGroup)
+        missile.CuteMissile('images/Missile1.png',10, angle,target, Vector(building.vector.x+30, building.vector.y), self.missileGroup, self.explosionsfx)
         pygame.draw.line(self.screen, (255,255,255), Vector(building.vector.x+30, building.vector.y).get_pos(), target)
+        self.launchsfx.play()
+    
+    def enemy_shoot(self):
+        # target
+        rangeX = ran.randint(15,585)
+        targetY = 600
+        # spawn
+        s_rangeX = ran.randint(-15,615)
+        spawnY = -20
+        # angle
+        target = Vector(rangeX, targetY)
+        spawn = Vector(s_rangeX, spawnY)
+        angle = spawn.get_angle(target.get_pos())
+
+        image = pygame.image.load('images/Missile2.png').convert_alpha()
+
+        missile.EnemyMissile(image, 4, angle, spawn, self.enemyMissileGroup)
+        
     def run(self):
         self.draw()
         self.update()
-
-        print(len(self.missileGroup))
-
 
 if __name__ == "__main__":
     game = Main()

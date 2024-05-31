@@ -1,6 +1,7 @@
 import pygame
 #from math import cos, sin, degrees
 
+# green ship
 class Ship(pygame.sprite.Sprite):
     def __init__(self, image,velocity, vector, ship_group):
         super().__init__()
@@ -14,18 +15,19 @@ class Ship(pygame.sprite.Sprite):
             self.velocity = velocity
         self.starting = self.vector
 
+        self.rect = self.image.get_rect()
+
         ship_group.add(self)
     
     def draw(self, win):
-        win.blit(self.image, self.vector.get_pos())
+        win.blit(self.image, (self.rect.x, self.rect.y))
     
     def update(self, win):
         self.vector.x += self.velocity
-        self.draw(win)
 
-class Green_Ship(Ship):
-    def __init__(self, image, velocity, vector, ship_group):
-        super().__init__(image, velocity, vector, ship_group)
+        self.rect.x = self.vector.x
+        self.rect.y = self.vector.y
+        self.draw(win)
 
 class Red_Ship(Ship):
     def __init__(self, image, velocity, vector, ship_group,):
