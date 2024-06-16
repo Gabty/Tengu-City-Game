@@ -25,7 +25,6 @@ class Buff(pygame.sprite.Sprite):
         self.draw(win)
     
     def buff_start(self):
-        pass
         for build in self.game.buildingGroup:
             build.heal(10)
 
