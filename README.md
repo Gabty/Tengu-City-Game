@@ -5,15 +5,16 @@ Dive into the electrifying universe of Tengu City Game, a thrilling spin-off of 
 # Accomplished Task
 - Working Missile and path system
 - Working enemy missiles
-- Working building (Collision unfinished)
+- Working building
+- Working different buildings
 - Working sound system
 - Working Gamescene system
-- Working buttons (No Texture yet)
-# 
-# Working on Task
-- Working on different types of missile
-- Working on different types of missiles
+- Working Buff
+- Working Different Buff
+- Working buttons
+- Working different types of missile
+- Working different types of ship
 - Sprites
-- File Handling for score system
+- File Handling for leaderboard
 - Leaderboard system
-- ETC
+- Score System
