@@ -7,6 +7,7 @@ import building
 from math import *
 from vector import Vector
 import random as ran
+import os
 
 import json
 
@@ -469,6 +470,10 @@ class GameOver:
         if event.type == pygame.MOUSEBUTTONUP and self.quit_rect.collidepoint(self.mouse.get_pos()):
             self.save()
             self.gamescene.setState('quit')
+
+if not os.path.exists('score.json'):
+    with open('score.json', 'w') as f:
+        json.dump({},f)
 
 if __name__ == "__main__":
     game = Main()
