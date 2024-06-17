@@ -1,7 +1,5 @@
 import pygame
 
-import building
-
 # health
 class Buff(pygame.sprite.Sprite):
     def __init__(self, vector, group, game):
