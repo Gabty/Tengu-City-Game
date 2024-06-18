@@ -4,12 +4,15 @@ import missile
 import ship
 import building
 
+
 from math import *
 from vector import Vector
 import random as ran
 import os
 
 import json
+
+from abc import ABC, abstractmethod
 
 pygame.init()
 pygame.display.set_caption('Tengu City')
@@ -18,7 +21,7 @@ pygame.display.set_icon(img)
 
 WIDTH, HEIGHT  = 600,700
 
-class Main():
+class Main:
     def __init__(self):
         self.screen = pygame.display.set_mode((600,700))
         self.clock = pygame.time.Clock()
@@ -81,7 +84,17 @@ class gameScene:
     def setState(self, newState):
         self.__state = newState
 
-class MainMenu:
+class Scene(ABC):
+    def draw(self):
+        pass
+    @abstractmethod
+    def run(self):
+        pass
+    @abstractmethod
+    def event(self, event):
+        pass
+
+class MainMenu(Scene):
     def __init__(self, screen, gamescene):
         self.screen = screen
         self.gamescene = gamescene
@@ -137,7 +150,7 @@ class MainMenu:
             if event.type == pygame.MOUSEBUTTONUP and button.collidepoint(self.mouse.get_pos()):
                 self.gamescene.setState(state)
 
-class Checkpoint:
+class Checkpoint(Scene):
     def __init__(self, screen, gamescene,game):
         self.screen = screen
         self.gamescene = gamescene
@@ -208,7 +221,7 @@ class Checkpoint:
             self.input_rect.x = (WIDTH//2) - text.get_width()/2 - 10
             self.input_rect.w = text.get_width() + 15
 
-class Leaderboard:
+class Leaderboard(Scene):
     def __init__(self, screen, gamescene):
         self.screen = screen
         self.gamescene = gamescene
@@ -260,7 +273,7 @@ class Leaderboard:
             self.draw_text(str(score), self.font, (255, 255, 255), self.screen, score_box.right - 60, score_box.centery)
             y_offset += 50
 
-class Game:
+class Game(Scene):
     def __init__(self, screen, gamescene, game):
         self.screen = screen
         self.gamescene = gamescene
@@ -413,7 +426,7 @@ class Game:
         self.draw()
         self.update()
 
-class GameOver:
+class GameOver(Scene):
     def __init__(self, screen, gamescene, game):
         self.screen = screen
         self.gamescene = gamescene
